@@ -1,51 +1,37 @@
-
 from fastapi import FastAPI
-from pydantic import BaseModel
-from datetime import datetime
-import requests
-import re
+import os
 
 app = FastAPI()
 
-class CheckRequest(BaseModel):
-    brand: str
-    card_id: str
-    card_number: str | None = None
-    pin: str | None = None
-
-def extract_balance(text: str):
-    match = re.search(r"\$\s*[\d,]+\.\d{2}", text)
-    if match:
-        return float(match.group(0).replace("$", "").replace(",", ""))
-    return None
-
-@app.post("/activation/check")
-def check_activation(req: CheckRequest):
-    status = "PENDING"
-
-    # Only do real check if PIN is provided
-    if req.card_number and req.pin:
-        try:
-            r = requests.get(
-                "https://www.kohls.com/guestservices/gift-cards",
-                timeout=20
-            )
-
-            balance = extract_balance(r.text)
-
-            if balance is None:
-                status = "UNKNOWN"
-            elif balance > 0:
-                status = "ACTIVE"
-            else:
-                status = "INACTIVE"
-
-        except Exception:
-            status = "UNKNOWN"
-
+# -------------------------
+# Health / root endpoint
+# -------------------------
+@app.get("/")
+def root():
     return {
-        "brand": req.brand,
-        "card_id": req.card_id,
-        "status": status,
-        "checked_at": datetime.utcnow().isoformat()
+        "status": "ok",
+        "message": "Render app is LIVE 🚀",
+        "port": os.environ.get("PORT")
     }
+
+# -------------------------
+# Optional test endpoint
+# -------------------------
+@app.get("/ping")
+def ping():
+    return {"ping": "pong"}
+
+# -------------------------
+# Render startup entrypoint
+# -------------------------
+if __name__ == "__main__":
+    import uvicorn
+
+    print("🔥 APP STARTED SUCCESSFULLY 🔥")
+
+    uvicorn.run(
+        "main:app",
+        host="0.0.0.0",
+        port=int(os.environ.get("PORT", 8000)),
+        log_level="info"
+    )
