@@ -1,10 +1,14 @@
 from fastapi import FastAPI
 import os
 
-app = FastAPI()
+app = FastAPI(
+    title="Activation API",
+    description="Gift card activation test API",
+    version="1.0.0"
+)
 
 # -------------------------
-# Health / root endpoint
+# Root / health endpoint
 # -------------------------
 @app.get("/")
 def root():
@@ -15,11 +19,23 @@ def root():
     }
 
 # -------------------------
-# Optional test endpoint
+# Ping endpoint
 # -------------------------
 @app.get("/ping")
 def ping():
     return {"ping": "pong"}
+
+# -------------------------
+# Card check endpoint
+# -------------------------
+@app.get("/check-card")
+def check_card(brand: str, card_number: str):
+    return {
+        "brand": brand,
+        "card_number": card_number,
+        "status": "received",
+        "note": "Test endpoint – logic will be added later"
+    }
 
 # -------------------------
 # Render startup entrypoint
